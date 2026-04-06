@@ -7,7 +7,7 @@
 A lightweight REST API built with Node.js and Express for tracking personal or organizational finances. It handles income/expense records, gives you dashboard-level summaries (monthly trends, category breakdowns, recent activity), and has a basic role-based access system so not everyone can go around deleting things.
 
 Data is stored in SQLite .
-
+I added Swagger using AI for better API  understanding .
 ---
 
 ## What it does
