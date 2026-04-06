@@ -14,7 +14,7 @@ async function createRecord(req, res) {
   }
 }
 
-// supports type, category, startDate, endDate
+//   filter by type, category, startDate, endDate
 async function getRecords(req, res) {
   const { type, category, startDate, endDate } = req.query;
 
@@ -38,7 +38,7 @@ async function getRecords(req, res) {
 }
 
 async function getRecordById(req, res) {
-  try {
+    try {
     const record = await db.getAsync('SELECT * FROM records WHERE id = ?', [req.params.id]);
     if (!record) return res.status(404).json({ error: 'not found' });
     res.json(record);

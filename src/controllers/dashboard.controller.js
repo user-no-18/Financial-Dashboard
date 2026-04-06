@@ -32,11 +32,11 @@ async function getCategoryTotals(req, res) {
 }
 
 async function getRecentActivity(req, res) {
-  try {
+             try {
     const rows = await db.allAsync(
       'SELECT * FROM records ORDER BY date DESC, createdAt DESC LIMIT 10'
     );
-    res.json(rows);
+               res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -47,20 +47,20 @@ async function getMonthlyTrends(req, res) {
   try {
     const rows = await db.allAsync(`
       SELECT 
-        strftime('%Y-%m', date) as month,
+          strftime('%Y-%m', date) as month,
         SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income,
         SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expense
       FROM records
-      GROUP BY month
+        GROUP BY month
       ORDER BY month DESC
     `);
     res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+        res.status(500).json({ error: err.message });
   }
 }
 
-//  add startdate /endDate filter here !
+//   filter 
 async function getWeeklyTrends(req, res) {
   try {
     const rows = await db.allAsync(`
