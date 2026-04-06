@@ -1,5 +1,10 @@
 # Financial Dashboard API
 
+<p align="center">
+  <img src="docs/images/dashboard-docs.png" width="45%" />
+  <img src="docs/images/users-docs.png" width="45%" />
+</p>
+
 A lightweight REST API built with Node.js and Express for tracking personal or organizational finances. It handles income/expense records, gives you dashboard-level summaries (monthly trends, category breakdowns, recent activity), and has a basic role-based access system so not everyone can go around deleting things.
 
 Data is stored in SQLite — no external database setup needed, just clone and run.
