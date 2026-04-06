@@ -121,7 +121,18 @@ npm start
 ```
 
 Server starts on `http://localhost:3000` by default.  
-Swagger docs: `http://localhost:3000/api-docs`
+Swagger docs: `http://localhost:3000/api-docs`  
+Raw Swagger Definition: `http://localhost:3000/swagger.json`  
+
+---
+
+## Sharing Swagger Docs
+
+To share the documentation with others, you have two options:
+1.  **Direct Link**: If your server is deployed, share the `/api-docs` link.
+2.  **Export JSON**: Send them the `/swagger.json` URL or download the file and send it. They can then import it into:
+    - [Postman](https://www.postman.com/) (Import -> Link/File)
+    - [Swagger Editor](https://editor.swagger.io/) (File -> Import URL/File)
 
 ---
 
