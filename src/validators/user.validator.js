@@ -15,4 +15,8 @@ const statusBody = z.object({
   status: z.enum(['active', 'inactive']),
 });
 
-module.exports = { createUserSchema, roleBody, statusBody };
+const loginSchema = z.object({
+  email: z.string().email('invalid email'),
+});
+
+module.exports = { createUserSchema, roleBody, statusBody, loginSchema };

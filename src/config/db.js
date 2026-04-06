@@ -42,7 +42,8 @@ db.serialize(() => {
       email TEXT UNIQUE NOT NULL,
       role TEXT NOT NULL DEFAULT 'viewer' CHECK(role IN ('viewer', 'analyst', 'admin')),
       status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      deletedAt DATETIME DEFAULT NULL
     )
   `);
 
@@ -57,6 +58,7 @@ db.serialize(() => {
       date TEXT NOT NULL,
       notes TEXT,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      deletedAt DATETIME DEFAULT NULL,
       FOREIGN KEY (userId) REFERENCES users(id)
     )
   `);

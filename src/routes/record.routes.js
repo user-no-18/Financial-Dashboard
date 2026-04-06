@@ -76,6 +76,20 @@ router.post('/', authenticate, authorize('admin'), validate(newRecordSchema), ct
  *         schema:
  *           type: string
  *           example: "2025-12-31"
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
  *     responses:
  *       200:
  *         description: List of records

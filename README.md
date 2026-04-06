@@ -21,81 +21,78 @@ I added Swagger using AI for better API  understanding .
 
 ---
 
+## Request Flow
+
+```mermaid
+flowchart TD
+    Client([Client / HTTP Request])
+    Client --> RateLimit[Rate Limit Middleware\nLimits requests to stop abuse]
+    RateLimit --> Logger[Logger Middleware\nLogs details]
+    Logger --> Router{Route Match}
+
+    Router -->|/api/users/login| Login[Login Route\nSends back JWT Token]
+    
+    Router -->|Protected Routes| Auth[JWT Authenticate\nChecks Bearer Token]
+    Auth -->|Fail| Reject[401 / 403 Error]
+    Auth --> RoleCheck[Role Check\nChecks if user allowed]
+    RoleCheck --> Privacy[Data Privacy\nUsers only see their records]
+    Privacy --> Action[Controllers\nProcess data in DB]
+
+    Action --> DB[(SQLite DB)]
+    Action --> Response([JSON Response])
+```
+
+---
+
+## Assumptions and Tradeoffs
+
+### Assumptions
+- **User Privacy**: We assume "privacy" means you only see your own money records. Only Admins can see everything.
+- **Login**: We use email to login since we don't have passwords yet.
+- **Roles**: We assume `admin` has full control, while `viewer` and `analyst` can only read their own data.
+
+### Tradeoffs
+- **SQLite**: Used for easy setup, but it might get slow with millions of records.
+- **Token Secret**: Secret is inside the code for simplicity, though in a real app it belongs in an environment file.
+- **Soft Delete**: Records stay in the database even when "deleted". This is safer but uses more disk space.
+
+---
+
 ## Tech Stack
 
 | Layer | Tech |
 |---|---|
 | Runtime | Node.js |
 | Framework | Express v5 |
-| Database | SQLite (via `sqlite3`) |
+| Security | Rate Limiting + JWT Tokens |
+| Database | SQLite |
 | Validation | Zod |
-| API Docs | Swagger (swagger-jsdoc + swagger-ui-express) |
-| Dev server | Nodemon |
+| Documentation| Swagger |
 
 ---
 
 ## Project Structure
 
 ```
-├── index.js                    # App entry point, middleware setup, server start
+├── index.js                    # Server start + global security (Rate Limit)
 └── src/
     ├── config/
-    │   ├── db.js               # SQLite connection + table initialization
-    │   └── swagger.js          # Swagger config
+    │   ├── db.js               # Database setup + Soft Delete columns
+    │   └── swagger.js          # API documentation config
     ├── controllers/
-    │   ├── dashboard.controller.js   # Summary, trends, category totals
-    │   ├── record.controller.js      # CRUD for financial records
-    │   └── user.controller.js        # CRUD for users + role/status management
+    │   ├── record.controller.js      # Record logic + Owner filtering 
+    │   └── user.controller.js        # User logic + JWT Login
     ├── middlewares/
-    │   ├── auth.middleware.js         # authenticate + authorize functions
-    │   ├── logger.middleware.js       # Request logger
-    │   └── validate.middleware.js     # Zod validation wrapper
+    │   ├── auth.middleware.js         # JWT Token verification
+    │   ├── logger.middleware.js       # Basic logging
+    │   └── validate.middleware.js     # Zod data check
     ├── routes/
-    │   ├── index.js                   # Mounts all route groups under /api
-    │   ├── dashboard.routes.js
-    │   ├── record.routes.js
-    │   └── user.routes.js
+    │   ├── index.js                   # Main route folder
+    │   ├── record.routes.js           # Money record routes
+    │   └── user.routes.js             # User and Login routes
     └── validators/
-        ├── record.validator.js        # Zod schemas for record endpoints
-        └── user.validator.js          # Zod schemas for user endpoints
-```
-
----
-
-## Request Flow
-
-```mermaid
-flowchart TD
-    Client([Client / HTTP Request])
-    Client --> Logger[Logger Middleware\nLogs method, path, status, time]
-    Logger --> Router{Route Match\n/api/users\n/api/records\n/api/dashboard}
-
-    Router -->|No match| NotFound[404 Handler]
-
-    Router -->|/api/users POST| PublicUser[No Auth Required\nValidate body with Zod]
-    PublicUser --> UserCtrl[user.controller\ncreateUser]
-
-    Router -->|/api/users CRUD| Auth1[authenticate\nCheck userid header\nLook up user in DB]
-    Auth1 -->|Not found / inactive| Reject1[401 / 403]
-    Auth1 --> Authz1[authorize\nCheck role == admin]
-    Authz1 -->|Wrong role| Reject2[403 Forbidden]
-    Authz1 --> UserCtrl2[user.controller\ngetUsers / updateRole / delete...]
-
-    Router -->|/api/records| Auth2[authenticate]
-    Auth2 --> Authz2[authorize\nrole: viewer / analyst / admin]
-    Authz2 --> Validate[validate middleware\nZod schema check]
-    Validate -->|Invalid body| BadReq[400 Bad Request]
-    Validate --> RecordCtrl[record.controller\ncreate / get / update / delete]
-
-    Router -->|/api/dashboard| Auth3[authenticate]
-    Auth3 --> DashCtrl[dashboard.controller\ngetSummary\ngetCategoryTotals\ngetRecentActivity\ngetMonthlyTrends\ngetWeeklyTrends]
-
-    UserCtrl --> DB[(SQLite DB)]
-    UserCtrl2 --> DB
-    RecordCtrl --> DB
-    DashCtrl --> DB
-
-    DB --> Response([JSON Response])
+        ├── record.validator.js        # Data rules for records
+        └── user.validator.js          # Data rules for users
 ```
 
 ---
@@ -181,19 +178,19 @@ All routes live under `/api`. Protected routes require a `userid` header with a 
 
 ## Auth Model
 
-There's no JWT or session stuff right now — authentication is done by passing a `userid` header with every request. The middleware looks up that ID in the database and attaches the user to `req.user`.
+We use **JWT Tokens** for security. Login at `/api/users/login` to get a token. Then pass it in the header like this:
 
 ```
-userid: 1
+Authorization: Bearer YOUR_TOKEN_HERE
 ```
 
 Three roles exist:
 
 | Role | What they can do |
 |---|---|
-| `viewer` | Read records and dashboard data |
-| `analyst` | Read records and dashboard data |
-| `admin` | Everything — create/update/delete records and users |
+| `viewer` | Read their own records and dashboard data |
+| `analyst` | Read their own records and dashboard data |
+| `admin` | Everything — manage all records and all users |
 
 ---
 

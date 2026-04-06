@@ -11,13 +11,20 @@ const swaggerOptions = {
     },
     servers: [{ url: 'http://localhost:3000' }],
     components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
       parameters: {
         UserIdHeader: {
           in: 'header',
-          name: 'userid',
+          name: 'authorization',
           required: true,
-          schema: { type: 'integer' },
-          description: 'ID of the logged-in user (simulates auth)',
+          schema: { type: 'string' },
+          description: 'Bearer token for authentication',
         },
       },
     },

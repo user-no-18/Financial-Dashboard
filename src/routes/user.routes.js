@@ -3,7 +3,7 @@ const router = express.Router();
 const ctrl = require('../controllers/user.controller');
 const { authenticate, authorize } = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate.middleware');
-const { createUserSchema, roleBody, statusBody } = require('../validators/user.validator');
+const { createUserSchema, roleBody, statusBody, loginSchema } = require('../validators/user.validator');
 
 /**
  * @swagger
@@ -11,6 +11,30 @@ const { createUserSchema, roleBody, statusBody } = require('../validators/user.v
  *   name: Users
  *   description: User management
  */
+
+/**
+ * @swagger
+ * /api/users/login:
+ *   post:
+ *     summary: Login to get token
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Success
+ *       401:
+ *         description: Invalid credentials
+ */
+router.post('/login', validate(loginSchema), ctrl.login);
 
 /**
  * @swagger
