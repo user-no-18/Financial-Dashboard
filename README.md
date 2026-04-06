@@ -6,7 +6,7 @@
 
 A lightweight REST API built with Node.js and Express for tracking personal or organizational finances. It handles income/expense records, gives you dashboard-level summaries (monthly trends, category breakdowns, recent activity), and has a basic role-based access system so not everyone can go around deleting things.
 
-Data is stored in SQLite — no external database setup needed, just clone and run.
+Data is stored in SQLite .
 
 ---
 
@@ -197,18 +197,4 @@ Three roles exist:
 
 ---
 
-## Environment Variables
 
-You can create a `.env` file in the root if you want to override the port:
-
-```env
-PORT=3000
-```
-
----
-
-## Notes
-
-- The SQLite database file (`database.sqlite`) is created automatically on first run and is excluded from git.
-- SQLite week numbers start at 0, so week-based grouping in trends uses `%W` (Sunday as first day).
-- Deleting a user cascades to their records — handled manually in the controller since SQLite FK constraints aren't always on by default.
