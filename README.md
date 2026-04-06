@@ -1,3 +1,4 @@
+
 # Financial Dashboard API
 
 ![Dashboard API](docs/images/dashboard-docs.png)
@@ -20,26 +21,40 @@ I added Swagger using AI for better API  understanding .
 - **Swagger** — interactive API docs at `/api-docs`
 
 ---
-
 ## Request Flow
 
 ```mermaid
 flowchart TD
     Client([Client / HTTP Request])
-    Client --> RateLimit[Rate Limit Middleware\nLimits requests to stop abuse]
-    RateLimit --> Logger[Logger Middleware\nLogs details]
-    Logger --> Router{Route Match}
+    Client --> Logger[Logger Middleware\nLogs method, path, status, time]
+    Logger --> Router{Route Match\n/api/users\n/api/records\n/api/dashboard}
 
-    Router -->|/api/users/login| Login[Login Route\nSends back JWT Token]
-    
-    Router -->|Protected Routes| Auth[JWT Authenticate\nChecks Bearer Token]
-    Auth -->|Fail| Reject[401 / 403 Error]
-    Auth --> RoleCheck[Role Check\nChecks if user allowed]
-    RoleCheck --> Privacy[Data Privacy\nUsers only see their records]
-    Privacy --> Action[Controllers\nProcess data in DB]
+    Router -->|No match| NotFound[404 Handler]
 
-    Action --> DB[(SQLite DB)]
-    Action --> Response([JSON Response])
+    Router -->|/api/users POST| PublicUser[No Auth Required\nValidate body with Zod]
+    PublicUser --> UserCtrl[user.controller\ncreateUser]
+
+    Router -->|/api/users CRUD| Auth1[authenticate\nCheck userid header\nLook up user in DB]
+    Auth1 -->|Not found / inactive| Reject1[401 / 403]
+    Auth1 --> Authz1[authorize\nCheck role == admin]
+    Authz1 -->|Wrong role| Reject2[403 Forbidden]
+    Authz1 --> UserCtrl2[user.controller\ngetUsers / updateRole / delete...]
+
+    Router -->|/api/records| Auth2[authenticate]
+    Auth2 --> Authz2[authorize\nrole: viewer / analyst / admin]
+    Authz2 --> Validate[validate middleware\nZod schema check]
+    Validate -->|Invalid body| BadReq[400 Bad Request]
+    Validate --> RecordCtrl[record.controller\ncreate / get / update / delete]
+
+    Router -->|/api/dashboard| Auth3[authenticate]
+    Auth3 --> DashCtrl[dashboard.controller\ngetSummary\ngetCategoryTotals\ngetRecentActivity\ngetMonthlyTrends\ngetWeeklyTrends]
+
+    UserCtrl --> DB[(SQLite DB)]
+    UserCtrl2 --> DB
+    RecordCtrl --> DB
+    DashCtrl --> DB
+
+    DB --> Response([JSON Response])
 ```
 
 ---
@@ -49,12 +64,12 @@ flowchart TD
 ### Assumptions
 - **User Privacy**: We assume "privacy" means you only see your own money records. Only Admins can see everything.
 - **Login**: We use email to login since we don't have passwords yet.
-- **Roles**: We assume `admin` has full control, while `viewer` and `analyst` can only read their own data.
+- **Roles**: We assume admin has full control, while viewer and analyst can only read their own data.
 
 ### Tradeoffs
-- **SQLite**: Used for easy setup, but it might get slow with millions of records.
-- **Token Secret**: Secret is inside the code for simplicity, though in a real app it belongs in an environment file.
-- **Soft Delete**: Records stay in the database even when "deleted". This is safer but uses more disk space.
+- SQLite: Used for easy setup, but it might get slow with millions of records.
+- Token Secret: Secret is inside the code for simplicity, though in a real app it belongs in an environment file.
+- Soft Delete: Records stay in the database even when deleted. This is safer but uses more disk space.
 
 ---
 
@@ -193,5 +208,3 @@ Three roles exist:
 | `admin` | Everything — manage all records and all users |
 
 ---
-
-
